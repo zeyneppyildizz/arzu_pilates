@@ -141,8 +141,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import studioImage from '../assets/studio.jpg'
-import studioMobileImage from '../assets/studio-mobile.jpg'
+import studioImage from '../assets/studio.webp'
+import studioMobileImage from '../assets/studio-mobile.webp'
 import { useAuthStore } from '../stores/auth.store'
 import { useAlert } from '../composables/useAlert'
 
