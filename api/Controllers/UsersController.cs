@@ -79,9 +79,9 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
                 HasAnyPayment = u.Payments.Any()
             })
             .FirstOrDefaultAsync();
-
+            
         if (user == null)
-            return NotFound(new { message = "Kullanıcı bulunamadı." });
+            return Unauthorized(new { message = "Hesabınız aktif değil veya silinmiş." });
 
         return Ok(user);
     }
