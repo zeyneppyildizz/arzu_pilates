@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using api.Hubs;
+using api.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
+    var adminUsername = builder.Configuration["SeedAdmin:Username"];
+    var adminPassword = builder.Configuration["SeedAdmin:Password"];
+
+    if (!string.IsNullOrWhiteSpace(adminUsername) &&
+        !string.IsNullOrWhiteSpace(adminPassword) &&
+        !db.Users.Any(u => u.Role == UserRole.Instructor))
+    {
+        db.Users.Add(new User
+        {
+            FirstName = "Arzu",
+            LastName = "Hoca",
+            Username = adminUsername,
+            Password = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+            Role = UserRole.Instructor,
+            Balance = 0
+        });
+        db.SaveChanges();
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
