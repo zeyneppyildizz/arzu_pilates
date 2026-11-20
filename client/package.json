@@ -11,6 +11,7 @@
   "dependencies": {
     "@microsoft/signalr": "^11.0.0",
     "@primevue/themes": "^4.5.4",
+    "axios": "^1.21.1",
     "pinia": "^4.1.0",
     "primeicons": "^8.0.2",
     "primevue": "^4.5.5",
