@@ -21,6 +21,7 @@ import { useStudentStore } from './stores/student.store'
 import { useHistoryStore } from './stores/history.store'
 import { useAttendanceStore } from './stores/attendance.store'
 import signalrService from './services/signalr.service'
+import { useRouter } from 'vue-router'
 
 import AppHeader from './components/Header.vue'
 import Toast from 'primevue/toast'
@@ -32,6 +33,7 @@ const authStore = useAuthStore()
 const studentStore = useStudentStore()
 const historyStore = useHistoryStore()
 const attendanceStore = useAttendanceStore()
+const router = useRouter()
 
 const isLoggedIn = computed(() => !!authStore.user)
 
@@ -39,6 +41,14 @@ const handleNewStudent = async () => {
   if (Number(authStore.user?.role) !== 1) return
   await studentStore.fetchStudents()
   alert.showSuccess('Sisteme yeni bir öğrenci kayıt oldu!')
+}
+
+const handleUserDeleted = (deletedUserId: number) => {
+  if (Number(authStore.user?.id) === Number(deletedUserId)) {
+    authStore.logout()
+    alert.showWarn('Hesabınız yönetici tarafından silindi.')
+    router.push('/login')
+  }
 }
 
 const handleAttendanceUpdate = async (updatedStudentId: number, newBalance: number) => {
@@ -82,6 +92,9 @@ watch(
 
       connection.off('ReceiveNewStudent', handleNewStudent)
       connection.on('ReceiveNewStudent', handleNewStudent)
+
+      connection.off('UserDeleted', handleUserDeleted)
+      connection.on('UserDeleted', handleUserDeleted)
 
       await signalrService.start()
     } else {

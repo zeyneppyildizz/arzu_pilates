@@ -215,6 +215,7 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
         student.IsActive = false;
         await _context.SaveChangesAsync();
 
+        await _hubContext.Clients.All.SendAsync("UserDeleted", id);
         return Ok(new { Message = "Öğrenci başarıyla silindi." });
     }
 
