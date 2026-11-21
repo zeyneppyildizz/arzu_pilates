@@ -5,6 +5,8 @@ import type {
   LoginRequest,
   AuthResponse,
   RegisterRequest,
+  ChangePasswordRequest,
+  UpdateProfileRequest,
 } from "../types/auth.type";
 
 export const useAuthStore = defineStore("auth", () => {
@@ -57,6 +59,81 @@ export const useAuthStore = defineStore("auth", () => {
     }
   };
 
+  const changePassword = async (payload: ChangePasswordRequest) => {
+    isLoading.value = true;
+    try {
+      error.value = "";
+      await authService.changePassword(payload);
+
+      if (user.value) {
+        user.value = {
+          ...user.value,
+          mustChangePassword: false,
+        };
+        localStorage.setItem("user", JSON.stringify(user.value));
+      }
+
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Şifre güncellenemedi.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const fetchMyProfile = async () => {
+    try {
+      const profile = await authService.getMyProfile();
+      if (user.value) {
+        user.value = {
+          ...user.value,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          username: profile.username,
+          balance: profile.balance,
+          mustChangePassword: profile.mustChangePassword,
+        };
+        localStorage.setItem("user", JSON.stringify(user.value));
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const updateProfile = async (payload: UpdateProfileRequest) => {
+    try {
+      error.value = "";
+      const updated = await authService.updateProfile(payload);
+
+      if (user.value) {
+        user.value = {
+          ...user.value,
+          firstName: updated.firstName,
+          lastName: updated.lastName,
+          username: updated.username,
+        };
+        localStorage.setItem("user", JSON.stringify(user.value));
+      }
+
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Bilgiler güncellenemedi.";
+      return false;
+    }
+  };
+
+  const resetStudentPassword = async (studentId: number) => {
+  error.value = ''
+  try {
+    return await authService.resetStudentPassword(studentId)
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Şifre sıfırlanırken bir hata oluştu.'
+    return null
+  }
+}
+
   const logout = () => {
     user.value = null;
     error.value = "";
@@ -70,5 +147,9 @@ export const useAuthStore = defineStore("auth", () => {
     login,
     register,
     logout,
+    changePassword,
+    fetchMyProfile,
+    updateProfile,
+    resetStudentPassword,
   };
 });

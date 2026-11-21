@@ -2,19 +2,30 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth.store' 
 
 import Login from '../views/Login.vue'
+import ChangePassword from '../views/ChangePassword.vue'
 import StudentScanner from '../views/StudentScanner.vue'
 import StudentList from '../views/StudentList.vue'
 import StudentProfile from '../views/StudentProfile.vue'
 import InstructorDashboard from '../views/InstructorDashboard.vue'
-
-
 import StudentHistory from '../views/StudentHistory.vue'
 import StudentMeasurements from '../views/StudentMeasurements.vue'
+import AccountSettings from '../views/AccountSettings.vue'
 
 const routes: Array<RouteRecordRaw> = [
   { path: '/', redirect: '/login' },
   { path: '/login', name: 'Login', component: Login },  
-  
+  {
+    path: '/change-password',
+    name: 'ChangePassword',
+    component: ChangePassword,
+    meta: { requiresAuth: true, title: 'Şifre Değiştir' }
+  },
+  {
+    path: '/account',
+    name: 'AccountSettings',
+    component: AccountSettings,
+    meta: { requiresAuth: true, title: 'Hesap Bilgilerim' }
+  },
   { 
     path: '/profile', 
     name: 'StudentProfile', 
@@ -64,6 +75,16 @@ router.beforeEach((to, _from, next) => {
 
   const isAuthenticated = !!authStore.user
   const userRole = authStore.user?.role
+  const mustChangePassword = !!authStore.user?.mustChangePassword
+
+  if (isAuthenticated && mustChangePassword) {
+    if (to.name !== 'ChangePassword') {
+      next({ name: 'ChangePassword' })
+    } else {
+      next()
+    }
+    return
+  }
 
   if (to.meta.requiresAuth) {
     if (!isAuthenticated) {

@@ -76,6 +76,7 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
                 u.LastName,
                 u.Username,
                 u.Balance,
+                u.MustChangePassword,
                 HasAnyPayment = u.Payments.Any()
             })
             .FirstOrDefaultAsync();
@@ -84,6 +85,44 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
             return Unauthorized(new { message = "Hesabınız aktif değil veya silinmiş." });
 
         return Ok(user);
+    }
+
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileRequest request)
+    {
+        var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (user == null)
+            return Unauthorized(new { message = "Hesabınız aktif değil veya silinmiş." });
+
+        var firstName = request.FirstName.Trim();
+        var lastName = request.LastName.Trim();
+        var username = request.Username.Trim();
+
+        if (firstName.Length < 2 || lastName.Length < 2 || username.Length < 3)
+            return BadRequest(new { message = "Ad ve soyad en az 2, kullanıcı adı en az 3 karakter olmalıdır." });
+
+        var usernameTaken = await _context.Users
+            .AnyAsync(u => u.Id != currentUserId && u.Username.ToLower() == username.ToLower());
+
+        if (usernameTaken)
+            return BadRequest(new { message = "Bu kullanıcı adı zaten kullanılıyor. Lütfen farklı bir kullanıcı adı belirleyin." });
+
+        user.FirstName = firstName;
+        user.LastName = lastName;
+        user.Username = username;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Bilgileriniz başarıyla güncellendi.",
+            user.Id,
+            user.FirstName,
+            user.LastName,
+            user.Username
+        });
     }
 
     [AllowAnonymous]
@@ -124,7 +163,9 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
             user.Id,
             user.FirstName,
             user.LastName,
+            user.Username,
             user.Role,
+            user.MustChangePassword,
             Token = tokenString
         });
     }
@@ -190,7 +231,7 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
         var attendances = await _context.AttendanceLogs
             .Where(a => a.StudentId == id)
             .OrderByDescending(a => a.AttendedAt)
-            .Select(a => new AttendanceDto(a.Id, a.AttendedAt, a.BalanceAfterAttendance))
+            .Select(a => new AttendanceDto(a.Id, a.AttendedAt, a.BalanceAfterAttendance, a.Type, a.Note))
             .ToListAsync();
 
         var payments = await _context.PaymentLogs
@@ -276,5 +317,61 @@ public class UsersController(AppDbContext _context, IHubContext<AttendanceHub> _
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "Ölçüler başarıyla güncellendi." });
+    }
+
+    [Authorize(Roles = "1")]
+    [HttpPost("{id}/reset-password")]
+    public async Task<IActionResult> ResetStudentPassword(int id)
+    {
+        var student = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Student);
+
+        if (student == null)
+            return NotFound(new { message = "Öğrenci bulunamadı." });
+
+        var randomCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1000, 10000);
+        var tempPassword = $"Arzu-{randomCode}";
+
+        student.Password = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+        student.MustChangePassword = true;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Geçici şifre oluşturuldu.",
+            tempPassword,
+            username = student.Username,
+            studentName = $"{student.FirstName} {student.LastName}"
+        });
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (user == null)
+            return Unauthorized(new { message = "Hesabınız aktif değil veya silinmiş." });
+
+        if (!user.MustChangePassword)
+        {
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+                !BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.Password))
+            {
+                return BadRequest(new { message = "Mevcut şifreniz hatalı." });
+            }
+        }
+
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.Password))
+        {
+            return BadRequest(new { message = "Yeni şifreniz mevcut şifrenizle aynı olamaz." });
+        }
+
+        user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.MustChangePassword = false;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Şifreniz başarıyla güncellendi." });
     }
 }

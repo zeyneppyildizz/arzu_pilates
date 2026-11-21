@@ -51,3 +51,25 @@ public record AddStudentRequest(
     [Range(0, double.MaxValue, ErrorMessage = "Tutar negatif olamaz.")]
     decimal Amount
 );
+
+public record ChangePasswordRequest(
+    string? CurrentPassword,
+
+    [Required(ErrorMessage = "Yeni şifre zorunludur.")]
+    [MinLength(3, ErrorMessage = "Yeni şifre en az 3 karakter olmalıdır.")]
+    string NewPassword
+);
+
+public record UpdateProfileRequest(
+    [Required(ErrorMessage = "Ad zorunludur.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Ad 2 ile 50 karakter arasında olmalıdır.")]
+    string FirstName,
+
+    [Required(ErrorMessage = "Soyad zorunludur.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Soyad 2 ile 50 karakter arasında olmalıdır.")]
+    string LastName,
+
+    [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
+    [StringLength(30, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3 ile 30 karakter arasında olmalıdır.")]
+    string Username
+);

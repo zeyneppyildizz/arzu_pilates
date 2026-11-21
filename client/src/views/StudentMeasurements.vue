@@ -1,17 +1,9 @@
 <template>
   <div class="max-w-6xl mx-auto p-4 md:p-8 transition-colors duration-300">
-    <PageHeader
-      eyebrow="ÖĞRENCİ PANELİ"
-      title="Vücut Ölçülerim"
-      subtitle="Ölçülerinizi güncel tutun.">
+    <PageHeader eyebrow="ÖĞRENCİ PANELİ" title="Vücut Ölçülerim" subtitle="Ölçülerinizi güncel tutun.">
       <template #actions>
-        <Button
-          label="Kaydet"
-          icon="pi pi-save"
-          @click="submitMeasurements"
-          :loading="isSaving"
-          class="!bg-[#718161] hover:!bg-[#5c6a4e] !border-none !text-white !rounded-xl !px-3 md:!px-6 !py-2 md:!py-3 shadow-md transition-all duration-300 text-sm md:text-base font-semibold whitespace-nowrap"
-        />
+        <Button label="Kaydet" icon="pi pi-save" @click="submitMeasurements" :loading="isSaving"
+          class="!bg-[#718161] hover:!bg-[#5c6a4e] !border-none !text-white !rounded-xl !px-3 md:!px-6 !py-2 md:!py-3 shadow-md transition-all duration-300 text-sm md:text-base font-semibold whitespace-nowrap" />
       </template>
     </PageHeader>
 
@@ -28,15 +20,13 @@
               <label :for="field.key" class="text-xs md:text-sm font-bold text-[#4a5542]">
                 {{ field.label }}
               </label>
-              <InputNumber
-                v-model="measurements[field.key]"
-                :inputId="field.key"
-                :min="0"
-                :minFractionDigits="0"
-                :maxFractionDigits="1"
-                class="w-full"
-                inputClass="studio-input text-sm md:text-base"
-              />
+              <InputNumber v-model="measurements[field.key]" :inputId="field.key" :min="0" :useGrouping="false"
+                :minFractionDigits="0" :maxFractionDigits="1" class="w-full" :inputClass="fieldErrors[field.key]
+                  ? 'studio-input text-sm md:text-base !border-red-400 !bg-red-50/40'
+                  : 'studio-input text-sm md:text-base'" @input="clearFieldError(field.key)" />
+              <p v-if="fieldErrors[field.key]" class="text-[11px] font-medium text-red-600">
+                {{ fieldErrors[field.key] }}
+              </p>
             </div>
           </div>
         </section>
@@ -46,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth.store'
 import { useMeasurementStore } from '../stores/measurement.store'
@@ -57,11 +47,20 @@ import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
 import PageHeader from '../components/PageHeader.vue'
 
+interface MeasurementField {
+  key: keyof MeasurementDto
+  label: string
+  name: string
+  unit: string
+  min: number
+  max: number
+}
+
 interface MeasurementSection {
   title: string
   description: string
   gridClass: string
-  fields: { key: keyof MeasurementDto; label: string }[]
+  fields: MeasurementField[]
 }
 
 const measurementSections: MeasurementSection[] = [
@@ -70,8 +69,8 @@ const measurementSections: MeasurementSection[] = [
     description: 'Boy ve kilo bilgilerinizi girin.',
     gridClass: 'md:grid-cols-2',
     fields: [
-      { key: 'height', label: 'Boy (cm)' },
-      { key: 'weight', label: 'Kilo (kg)' }
+{ key: 'height', label: 'Boy (cm)', name: 'Boy', unit: 'cm', min: 50, max: 250 },
+      { key: 'weight', label: 'Kilo (kg)', name: 'Kilo', unit: 'kg', min: 20, max: 300 }
     ]
   },
   {
@@ -79,9 +78,9 @@ const measurementSections: MeasurementSection[] = [
     description: 'Ölçüleri santimetre cinsinden girin.',
     gridClass: 'md:grid-cols-3',
     fields: [
-      { key: 'waist', label: 'Bel (cm)' },
-      { key: 'abdomen', label: 'Karın (cm)' },
-      { key: 'hips', label: 'Kalça (cm)' }
+{ key: 'waist', label: 'Bel (cm)', name: 'Bel', unit: 'cm', min: 30, max: 250 },
+      { key: 'abdomen', label: 'Karın (cm)', name: 'Karın', unit: 'cm', min: 30, max: 250 },
+      { key: 'hips', label: 'Kalça (cm)', name: 'Kalça', unit: 'cm', min: 30, max: 250 }
     ]
   },
   {
@@ -89,10 +88,10 @@ const measurementSections: MeasurementSection[] = [
     description: 'Tüm ölçüleri santimetre cinsinden girin.',
     gridClass: 'md:grid-cols-4',
     fields: [
-      { key: 'rightArm', label: 'Sağ Kol (cm)' },
-      { key: 'leftArm', label: 'Sol Kol (cm)' },
-      { key: 'rightLeg', label: 'Sağ Bacak (cm)' },
-      { key: 'leftLeg', label: 'Sol Bacak (cm)' }
+{ key: 'rightArm', label: 'Sağ Kol (cm)', name: 'Sağ kol', unit: 'cm', min: 10, max: 100 },
+      { key: 'leftArm', label: 'Sol Kol (cm)', name: 'Sol kol', unit: 'cm', min: 10, max: 100 },
+      { key: 'rightLeg', label: 'Sağ Bacak (cm)', name: 'Sağ bacak', unit: 'cm', min: 20, max: 150 },
+      { key: 'leftLeg', label: 'Sol Bacak (cm)', name: 'Sol bacak', unit: 'cm', min: 20, max: 150 }
     ]
   }
 ]
@@ -103,6 +102,32 @@ const alert = useAlert()
 
 const { measurements, isSaving } = storeToRefs(measurementStore)
 
+const fieldErrors = ref<Partial<Record<keyof MeasurementDto, string>>>({})
+
+const clearFieldError = (key: keyof MeasurementDto) => {
+  if (fieldErrors.value[key]) {
+    delete fieldErrors.value[key]
+  }
+}
+
+const validateMeasurements = (): boolean => {
+  const errors: Partial<Record<keyof MeasurementDto, string>> = {}
+
+  for (const section of measurementSections) {
+    for (const field of section.fields) {
+      const value = measurements.value[field.key]
+      if (value === null || value === undefined) continue
+
+      if (value < field.min || value > field.max) {
+        errors[field.key] = `${field.name} ${field.min} ile ${field.max} ${field.unit} arasında olmalıdır.`
+      }
+    }
+  }
+
+  fieldErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+
 onMounted(async () => {
   if (authStore.user?.id) {
     await measurementStore.fetchMeasurements(authStore.user.id)
@@ -111,6 +136,10 @@ onMounted(async () => {
 
 const submitMeasurements = async () => {
   if (!authStore.user?.id) return
+  if (!validateMeasurements()) {
+    alert.showWarn('Lütfen girdiğiniz ölçü değerlerini kontrol edin.')
+    return
+  }
 
   try {
     await measurementStore.saveMeasurements(authStore.user.id)

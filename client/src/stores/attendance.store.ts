@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { attendanceService } from '../services/attendance.service';
-import type { ScanQrResponse } from '../types/attendance.type';
+import type { ScanQrResponse, ManualDeductRequest, ManualDeductResponse } from '../types/attendance.type';
 
 export const useAttendanceStore = defineStore('attendance', () => {
   const isLoading = ref(false);
@@ -38,6 +38,16 @@ export const useAttendanceStore = defineStore('attendance', () => {
     }
   };
 
+  const manualDeduct = async (payload: ManualDeductRequest): Promise<ManualDeductResponse | null> => {
+  error.value = ''
+  try {
+    return await attendanceService.manualDeduct(payload)
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Ders düşülürken bir hata oluştu.'
+    return null
+  }
+};
+
   return {
     isLoading,
     error,
@@ -45,6 +55,7 @@ export const useAttendanceStore = defineStore('attendance', () => {
     isLoadingTodayCount,
     todayAttendanceError,
     fetchTodayCount,
-    scanQrCode
+    scanQrCode,
+    manualDeduct
   };
 });

@@ -12,6 +12,7 @@ export const useHistoryStore = defineStore('history', () => {
   const currentMonthAttendanceCount = computed(() => {
     const now = new Date()
     return attendances.value.filter(attendance => {
+      if (attendance.type === 2) return false
       const date = new Date(attendance.date)
       return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
     }).length
@@ -30,7 +31,9 @@ export const useHistoryStore = defineStore('history', () => {
       key: `attendance-${attendance.id}`,
       type: 'attendance' as const,
       date: attendance.date,
-      balanceAfter: attendance.balanceAfter
+      balanceAfter: attendance.balanceAfter,
+      attendanceType: attendance.type ?? 0,
+      note: attendance.note ?? null
     })),
     ...payments.value.map(payment => ({
       key: `payment-${payment.id}`,

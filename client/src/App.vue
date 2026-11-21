@@ -1,9 +1,9 @@
 <template>
   <div class="relative min-h-screen font-sans text-[#2d3627] bg-[#f3f4ef]">
     <div class="relative z-10 min-h-screen flex flex-col">
-      <AppHeader v-if="isLoggedIn" />
+      <AppHeader v-if="showHeader" />
 
-      <main class="flex-grow" :class="isLoggedIn ? 'pb-20 md:pb-0' : ''">
+      <main class="flex-grow" :class="showHeader ? 'pb-20 md:pb-0' : ''">
         <router-view />
       </main>
 
@@ -36,6 +36,7 @@ const attendanceStore = useAttendanceStore()
 const router = useRouter()
 
 const isLoggedIn = computed(() => !!authStore.user)
+const showHeader = computed(() => isLoggedIn.value && !authStore.user?.mustChangePassword)
 
 const handleNewStudent = async () => {
   if (Number(authStore.user?.role) !== 1) return

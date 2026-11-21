@@ -1,5 +1,6 @@
 import api from './api';
-import type { ScanQrResponse } from '../types/attendance.type'; 
+import type { ScanQrResponse, ManualDeductRequest,
+  ManualDeductResponse } from '../types/attendance.type'; 
 
 export const attendanceService = {
   async getTodayCount(): Promise<number> {
@@ -9,6 +10,11 @@ export const attendanceService = {
 
   async scanQr(token: string): Promise<ScanQrResponse> {
     const response = await api.post<ScanQrResponse>('/attendance/scan', { token });
+    return response.data;
+  },
+
+  async manualDeduct(data: ManualDeductRequest): Promise<ManualDeductResponse> {
+    const response = await api.post<ManualDeductResponse>('/attendance/manual-deduct', data);
     return response.data;
   }
 };

@@ -36,7 +36,13 @@ namespace api.Migrations
                     b.Property<int>("BalanceAfterAttendance")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
                     b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -146,6 +152,9 @@ namespace api.Migrations
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Password")
                         .IsRequired()

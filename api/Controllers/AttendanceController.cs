@@ -32,7 +32,10 @@ public class AttendanceController(AppDbContext _context, IHubContext<AttendanceH
         var endUtc = TimeZoneInfo.ConvertTimeToUtc(localDate.AddDays(1), timeZone);
 
         var attendanceCount = await _context.AttendanceLogs
-            .CountAsync(log => log.AttendedAt >= startUtc && log.AttendedAt < endUtc);
+            .CountAsync(log =>
+                log.AttendedAt >= startUtc &&
+                log.AttendedAt < endUtc &&
+                log.Type != AttendanceType.LateCancellation);
 
         return Ok(new { count = attendanceCount });
     }
@@ -97,4 +100,51 @@ public class AttendanceController(AppDbContext _context, IHubContext<AttendanceH
             NewBalance = student.Balance
         });
     }
+
+    [Authorize(Roles = "1")]
+    [HttpPost("manual-deduct")]
+    public async Task<IActionResult> ManualDeduct([FromBody] ManualDeductRequest request)
+    {
+        if (request.Type is not (AttendanceType.ManualAttendance or AttendanceType.LateCancellation))
+        {
+            return BadRequest(new { Message = "Geçersiz işlem türü." });
+        }
+
+        var student = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == request.StudentId && u.Role == UserRole.Student);
+
+        if (student == null)
+            return NotFound(new { Message = "Öğrenci bulunamadı." });
+
+        var trimmedNote = string.IsNullOrWhiteSpace(request.Note)
+            ? null
+            : request.Note.Trim();
+
+        student.Balance -= 1;
+
+        var log = new AttendanceLog
+        {
+            StudentId = student.Id,
+            AttendedAt = DateTime.UtcNow,
+            BalanceAfterAttendance = student.Balance,
+            Type = request.Type,
+            Note = trimmedNote
+        };
+
+        _context.AttendanceLogs.Add(log);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.All.SendAsync("ReceiveAttendanceUpdate", student.Id, student.Balance);
+
+        var message = request.Type == AttendanceType.LateCancellation
+            ? "Son dakika iptali işlendi, 1 ders düşüldü."
+            : "Manuel yoklama alındı, 1 ders düşüldü.";
+
+        return Ok(new
+        {
+            Message = message,
+            NewBalance = student.Balance
+        });
+    }
 }
+
