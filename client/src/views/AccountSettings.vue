@@ -19,12 +19,11 @@
 
                 <form @submit.prevent="handleProfileSubmit" novalidate class="space-y-4">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="flex flex-col gap-1.5">
-                        <label for="accountUsername" class="text-xs font-semibold text-[#4a5542]">Kullanıcı Adı</label>
-                        <InputText id="accountUsername" v-model="profileForm.username" type="text"
-                            autocomplete="username" autocapitalize="none" spellcheck="false" class="studio-input"
-                            @keydown.space.prevent @input="onUsernameInput" />
-                    </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label for="accountFirstName" class="text-xs font-semibold text-[#4a5542]">Ad</label>
+                            <InputText id="accountFirstName" v-model="profileForm.firstName" type="text"
+                                class="studio-input" />
+                        </div>
 
                         <div class="flex flex-col gap-1.5">
                             <label for="accountLastName" class="text-xs font-semibold text-[#4a5542]">Soyad</label>
@@ -36,7 +35,8 @@
                     <div class="flex flex-col gap-1.5">
                         <label for="accountUsername" class="text-xs font-semibold text-[#4a5542]">Kullanıcı Adı</label>
                         <InputText id="accountUsername" v-model="profileForm.username" type="text"
-                            autocomplete="username" class="studio-input" />
+                            autocomplete="username" autocapitalize="none" spellcheck="false" class="studio-input"
+                            @keydown.space.prevent @input="onUsernameInput" />
                     </div>
 
                     <p v-if="profileError" role="alert"
