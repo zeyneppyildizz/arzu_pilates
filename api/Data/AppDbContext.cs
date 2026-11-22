@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PaymentLog> PaymentLogs { get; set; }
     public DbSet<AttendanceLog> AttendanceLogs { get; set; }
     public DbSet<StudentMeasurement> StudentMeasurements { get; set; }
+    public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
+    public DbSet<ScheduleEnrollment> ScheduleEnrollments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,5 +45,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<StudentMeasurement>()
             .HasIndex(m => m.StudentId)
             .IsUnique();
+
+        modelBuilder.Entity<ScheduleSlot>()
+            .HasIndex(s => new { s.DayOfWeek, s.StartTime })
+            .IsUnique();
+
+        modelBuilder.Entity<ScheduleEnrollment>()
+            .HasQueryFilter(e => e.Student.IsActive);
+
+        modelBuilder.Entity<ScheduleEnrollment>()
+            .HasIndex(e => new { e.ScheduleSlotId, e.StudentId })
+            .IsUnique();
+
+        modelBuilder.Entity<ScheduleEnrollment>()
+            .HasOne(e => e.ScheduleSlot)
+            .WithMany(s => s.Enrollments)
+            .HasForeignKey(e => e.ScheduleSlotId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ScheduleEnrollment>()
+            .HasOne(e => e.Student)
+            .WithMany()
+            .HasForeignKey(e => e.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -21,6 +21,7 @@ public record CreateUserRequest(
 
     [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
     [StringLength(30, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3 ile 30 karakter arasında olmalıdır.")]
+    [RegularExpression(@"^\S+$", ErrorMessage = "Kullanıcı adı boşluk içeremez.")]
     string Username,
 
     [Required(ErrorMessage = "Şifre zorunludur.")]
@@ -38,7 +39,8 @@ public record AddStudentRequest(
     string LastName,
 
     [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
-    [StringLength(30, MinimumLength = 3)]
+    [StringLength(30, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3 ile 30 karakter arasında olmalıdır.")]
+    [RegularExpression(@"^\S+$", ErrorMessage = "Kullanıcı adı boşluk içeremez.")]
     string Username,
 
     [Required(ErrorMessage = "Şifre zorunludur.")]
@@ -71,5 +73,6 @@ public record UpdateProfileRequest(
 
     [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
     [StringLength(30, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3 ile 30 karakter arasında olmalıdır.")]
+    [RegularExpression(@"^\S+$", ErrorMessage = "Kullanıcı adı boşluk içeremez.")]
     string Username
 );

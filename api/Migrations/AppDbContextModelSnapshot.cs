@@ -82,6 +82,59 @@ namespace api.Migrations
                     b.ToTable("PaymentLogs");
                 });
 
+            modelBuilder.Entity("api.Entities.ScheduleEnrollment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ScheduleSlotId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ScheduleSlotId", "StudentId")
+                        .IsUnique();
+
+                    b.ToTable("ScheduleEnrollments");
+                });
+
+            modelBuilder.Entity("api.Entities.ScheduleSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayOfWeek", "StartTime")
+                        .IsUnique();
+
+                    b.ToTable("ScheduleSlots");
+                });
+
             modelBuilder.Entity("api.Entities.StudentMeasurement", b =>
                 {
                     b.Property<int>("Id")
@@ -198,6 +251,25 @@ namespace api.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("api.Entities.ScheduleEnrollment", b =>
+                {
+                    b.HasOne("api.Entities.ScheduleSlot", "ScheduleSlot")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("ScheduleSlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Entities.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ScheduleSlot");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("api.Entities.StudentMeasurement", b =>
                 {
                     b.HasOne("api.Entities.User", "Student")
@@ -207,6 +279,11 @@ namespace api.Migrations
                         .IsRequired();
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("api.Entities.ScheduleSlot", b =>
+                {
+                    b.Navigation("Enrollments");
                 });
 
             modelBuilder.Entity("api.Entities.User", b =>

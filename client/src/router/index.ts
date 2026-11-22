@@ -10,6 +10,7 @@ import InstructorDashboard from '../views/InstructorDashboard.vue'
 import StudentHistory from '../views/StudentHistory.vue'
 import StudentMeasurements from '../views/StudentMeasurements.vue'
 import AccountSettings from '../views/AccountSettings.vue'
+import InstructorSchedule from '../views/InstructorSchedule.vue'
 
 const routes: Array<RouteRecordRaw> = [
   { path: '/', redirect: '/login' },
@@ -62,7 +63,18 @@ const routes: Array<RouteRecordRaw> = [
     name: 'StudentScanner', 
     component: StudentScanner,
     meta: { requiresAuth: true, requiredRole: 1, title: 'Yoklama Tarayıcısı', icon: 'pi pi-qrcode' }
-  }
+  },
+  {
+    path: '/schedule',
+    name: 'InstructorSchedule',
+    component: InstructorSchedule,
+    meta: {
+      requiresAuth: true,
+      requiredRole: 1,
+      title: 'Ders Programı',
+      icon: 'pi pi-calendar'
+    }
+  },
 ]
 
 const router = createRouter({

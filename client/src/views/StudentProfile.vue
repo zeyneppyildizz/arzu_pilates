@@ -47,6 +47,8 @@
       </section>
     </div>
 
+    <StudentWeeklyScheduleCard class="mt-5" />
+
     <section class="mt-5 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-7">
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -83,6 +85,7 @@ import { generateAttendanceQrPayload } from '../utils/qr.util'
 
 import Skeleton from 'primevue/skeleton'
 import PageHeader from '../components/PageHeader.vue'
+import StudentWeeklyScheduleCard from '../components/StudentWeeklyScheduleCard.vue'
 
 const authStore = useAuthStore()
 const studentStore = useStudentStore()

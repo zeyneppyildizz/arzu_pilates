@@ -79,8 +79,9 @@
 
           <div class="flex flex-col gap-1.5">
             <label for="username" class="text-xs font-semibold text-[#4a5542]">Kullanıcı Adı</label>
-            <InputText id="username" v-model="form.username" type="text" autocomplete="username" class="studio-input"
-              placeholder="Örn: zeynep" />
+            <InputText id="username" v-model="form.username" type="text" autocomplete="username" autocapitalize="none"
+              spellcheck="false" class="studio-input" placeholder="Örn: zeynepyildiz" @keydown.space="handleUsernameSpace"
+              @input="onUsernameInput" />
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -156,6 +157,22 @@ const setMode = (loginMode: boolean) => {
   form.value = { firstName: '', lastName: '', username: '', password: '' }
 }
 
+const handleUsernameSpace = (event: KeyboardEvent) => {
+  if (!isLoginMode.value) {
+    event.preventDefault()
+  }
+}
+
+const onUsernameInput = (event: Event) => {
+  if (isLoginMode.value) return
+  const input = event.target as HTMLInputElement
+  const cleaned = input.value.replace(/\s+/g, '')
+  if (input.value !== cleaned) {
+    input.value = cleaned
+  }
+  form.value.username = cleaned
+}
+
 const handleSubmit = async () => {
   authStore.error = ''
 
@@ -187,6 +204,11 @@ const handleSubmit = async () => {
   } else {
     if (!registrationData.firstName || !registrationData.lastName || !registrationData.username || !registrationData.password) {
       authStore.error = 'Lütfen tüm alanları doldurun.'
+      return
+    }
+
+    if (/\s/.test(registrationData.username)) {
+      authStore.error = 'Kullanıcı adı boşluk içeremez.'
       return
     }
 
