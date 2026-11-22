@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100 transition-all duration-300">
+  <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100 pt-[env(safe-area-inset-top)] transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
       <div class="flex items-center gap-2">
@@ -39,7 +39,7 @@
     </div>
 
     <div v-if="navItems.length"
-      class="fixed inset-x-0 bottom-0 z-50 flex min-h-16 items-center border-t border-gray-100 bg-white/95 px-1 shadow-[0_-4px_16px_rgba(45,54,39,0.08)] backdrop-blur md:hidden">
+      class="fixed inset-x-0 bottom-0 z-50 flex items-center border-t border-gray-100 bg-white/95 px-1 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(45,54,39,0.08)] backdrop-blur md:hidden">
       <router-link v-for="item in navItems" :key="item.to" :to="item.to" :aria-label="item.label" :title="item.label"
         class="nav-link flex h-14 min-w-0 flex-1 items-center justify-center rounded-xl text-xl text-[#4a5542] font-medium transition-colors">
         <i :class="item.icon" aria-hidden="true"></i>

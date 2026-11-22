@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen flex items-center justify-center px-4 py-8 md:px-8 overflow-hidden bg-black">
+  <div class="relative min-h-[100dvh] flex items-center justify-center px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))] md:px-8 overflow-hidden bg-black">
     <div class="fixed inset-0 z-0 pointer-events-none">
       <img :src="studioMobileImage" alt="" class="block md:hidden w-full h-full object-cover blur-[2px] scale-105" />
       <img :src="studioImage" alt=""
